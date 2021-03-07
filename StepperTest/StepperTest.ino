@@ -3,12 +3,11 @@
 #include <HTTPClient.h>
 #include <WiFiManager.h>
 
- 
 // Motor pin definitions
-#define motorPin1  27         // IN1 on the ULN2003 driver 1
-#define motorPin2  14         // IN2 on the ULN2003 driver 1
-#define motorPin3  12         // IN3 on the ULN2003 driver 1
-#define motorPin4  13        // IN4 on the ULN2003 driver 1
+#define motorPin1  27         // IN1 & IN4 on the ULN2003 drivers
+#define motorPin2  14         // IN2 & IN3 on the ULN2003 drivers  
+#define motorPin3  12         // IN3 & IN2 on the ULN2003 drivers
+#define motorPin4  13         // IN4 & IN1 on the ULN2003 drivers
  
 // Initialize with pin sequence IN1-IN3-IN2-IN4 for using the AccelStepper with 28BYJ-48
 AccelStepper stepper(8, motorPin1, motorPin3, motorPin2, motorPin4);
@@ -36,29 +35,7 @@ void setup() {
   pinMode(33, INPUT);
   pinMode(26, INPUT);
 
-  // Bluetooth Setup
   Serial.begin(115200);
-  /*
-//  SerialBT.begin("ESP32test", true); 
-//  Serial.println("Bluetooth Master started");
-//  //Has master connected to camera?
-//  connected = SerialBT.connect(BLE_name);
-//  if(connected) {
-//    Serial.println("Connected Succesfully!");
-//  } else {
-//    while(!SerialBT.connected(10000)) {
-//      Serial.println("Failed to connect. Make sure remote device is available and in range, then restart app."); 
-//    }
-//  }
-//  if (SerialBT.disconnect()) {
-//    Serial.println("Disconnected Succesfully!");
-//  }
-//  // this would reconnect to the name(will use address, if resolved) or address used with connect(name/address).
-//  SerialBT.connect();
-//  
-//  Serial.println("Setup completed!");
-//  http.begin("http://192.168.0.57/capture");
-*/
   WiFi.mode(WIFI_STA);
   WiFiManager wm;
   wm.setAPCallback(configModeCallback);
@@ -68,14 +45,6 @@ void setup() {
     ESP.restart();
     delay(1000);
   }
-
-/*
-//  WiFi.begin(ssid, password);
-//  while (WiFi.status() != WL_CONNECTED) {
-//    delay(1000);
-//    Serial.println("Connecting to WiFi..");
-//  }
-*/
   Serial.println("Connected to the WiFi network");
 }
  
@@ -85,7 +54,7 @@ void loop() {
 
   // if you've reached the last destination, then procede
   if(stepper.distanceToGo() == 0){
-    // If the camera hasn't taken a picture, then tell it to
+    // Take a photo, when you first reach a new position
     if(!position_packet_sent){
       Serial.println("1");
       HTTPClient http;
@@ -102,13 +71,13 @@ void loop() {
         Serial.println("Error on HTTP request");
       }
       http.end(); //Free the resources
-    
+//      TODO: communicate current position to camera
 //      Serial.print("Packet sent : ");
 //      Serial.println(CURR_POS);
       
       position_packet_sent = true;
     }
-    // If any position trigger have gone off, then move there.
+    // If any position trigger have gone off, then move to that position.
     if(digitalRead(32) == HIGH){    
       CURR_POS = 0;
       position_packet_sent = false;
@@ -125,11 +94,6 @@ void loop() {
       stepper.moveTo(positions[CURR_POS]);
     }
   }
-  
-//  if (SerialBT.available()) {
-//    Serial.write(SerialBT.read());
-//  }
-  
 }
 
 
