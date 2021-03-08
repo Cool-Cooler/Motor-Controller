@@ -8,11 +8,13 @@
 #define motorPin2  14         // IN2 & IN3 on the ULN2003 drivers  
 #define motorPin3  12         // IN3 & IN2 on the ULN2003 drivers
 #define motorPin4  13         // IN4 & IN1 on the ULN2003 drivers
+// Relay attached on pin 25
+#define relayPin 25
  
 // Initialize with pin sequence IN1-IN3-IN2-IN4 for using the AccelStepper with 28BYJ-48
 AccelStepper stepper(8, motorPin1, motorPin3, motorPin2, motorPin4);
 
-int currentPos = 0, moveDist = 10000, CURR_POS = 0;
+int current_pos = 0, tuning_dist= 10000, CURR_POS = 0;
 int positions[3] = {0, -15000, -30000};
 bool position_packet_sent = true;
 
@@ -34,6 +36,8 @@ void setup() {
   pinMode(32, INPUT);
   pinMode(33, INPUT);
   pinMode(26, INPUT);
+  pinMode(25, OUTPUT);
+  digitalWrite(relayPin, LOW);
 
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
@@ -56,11 +60,9 @@ void loop() {
   if(stepper.distanceToGo() == 0){
     // Take a photo, when you first reach a new position
     if(!position_packet_sent){
-      Serial.println("1");
+      digitalWrite(relayPin, LOW);
       HTTPClient http;
-      Serial.println("2");
       http.begin("http://192.168.0.57/capture");
-      Serial.println("http://192.168.0.57/capture");
       int httpCode = http.GET();
       if (httpCode > 0) { //Check for the returning code
           String payload = http.getString();
@@ -78,22 +80,31 @@ void loop() {
       position_packet_sent = true;
     }
     // If any position trigger have gone off, then move to that position.
-    if(digitalRead(32) == HIGH){    
+    if(digitalRead(32) == HIGH){   
+      digitalWrite(relayPin, HIGH); 
       CURR_POS = 0;
       position_packet_sent = false;
       stepper.moveTo(positions[CURR_POS]);
+//      current_pos -= tuning_dist;
+//      stepper.moveTo(current_pos);
     }
     else if(digitalRead(33) == HIGH){  
+      digitalWrite(relayPin, HIGH); 
       CURR_POS = 1;
       position_packet_sent = false;
+//      stepper.moveTo(positions[CURR_POS]);
       stepper.moveTo(positions[CURR_POS]);
     }
     else if(digitalRead(26) == HIGH){
+      digitalWrite(relayPin, HIGH); 
       CURR_POS = 2;
       position_packet_sent = false;
       stepper.moveTo(positions[CURR_POS]);
+//      current_pos += tuning_dist;
+//      stepper.moveTo(current_pos);
     }
   }
+
 }
 
 
