@@ -61,46 +61,41 @@ void loop() {
     
     // If you've reached the last destination, then procede
     if(stepper.distanceToGo() == 0){
-      Serial.print("Current yolk ");
-      Serial.println(CURR_POS);
-            
-      // Take a photo, when you first reach a new position
-      digitalWrite(relayPin, LOW);
-      HTTPClient http;
-      http.begin("http://192.168.0.45/capture");
-      int httpCode = http.GET();
-      
-      //Check for the returning code
-      if (httpCode > 0) { //Check for the returning code
-          String payload = http.getString();
-          Serial.println(httpCode);
-          Serial.println(payload);
+      if(CURR_POS < 3){      
+        // Take a photo, when you first reach a new position
+        digitalWrite(relayPin, LOW);
+        HTTPClient http;
+        http.begin("http://192.168.0.45/capture");
+        int httpCode = http.GET();
+        
+        //Check for the returning code
+        if (httpCode > 0) { //Check for the returning code
+            String payload = http.getString();
+            Serial.println(httpCode);
+            Serial.println(payload);
+          }
+        else {
+          Serial.println("Error on HTTP request");
         }
-      else {
-        Serial.println("Error on HTTP request");
+        //Free the resources
+        http.end(); 
+        // TODO: communicate current position to camera
       }
-      //Free the resources
-      http.end(); 
-      // TODO: communicate current position to camera
 
       if(CURR_POS < 3){
         digitalWrite(relayPin, HIGH);
         CURR_POS++;
-        Serial.print("new pos ");
-        Serial.println(CURR_POS);
       }
       else{
-        Serial.println("Waiting and restarting");
         CURR_POS = 0;
         on_state = false;
       }
       
       // Move the stepper motor to the position
       if(CURR_POS < 3){
-        Serial.println("Moving time");
         stepper.moveTo(positions[CURR_POS]);
       }
-//      stepper.moveTo(30000);
+//      stepper.moveTo(15000);
 //      on_state = false;
     }
   }
