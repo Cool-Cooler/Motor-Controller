@@ -16,7 +16,7 @@ AccelStepper stepper(8, motorPin1, motorPin3, motorPin2, motorPin4);
 
 int current_pos = 0, tuning_dist= 10000, CURR_POS = 0;
 int positions[3] = {0, -15000, -30000};
-bool position_packet_sent = true;
+bool position_packet_sent = true, on_state = false;
 
 
 //gets called when WiFiManager enters configuration mode
@@ -55,15 +55,22 @@ void setup() {
 void loop() {
   // Set steppers going
   stepper.run();
-
-  // if you've reached the last destination, then procede
-  if(stepper.distanceToGo() == 0){
-    // Take a photo, when you first reach a new position
-    if(!position_packet_sent){
+  
+  // State machine is turned on with a switch
+  if(on_state){
+    
+    // If you've reached the last destination, then procede
+    if(stepper.distanceToGo() == 0){
+      Serial.print("Current yolk ");
+      Serial.println(CURR_POS);
+            
+      // Take a photo, when you first reach a new position
       digitalWrite(relayPin, LOW);
       HTTPClient http;
       http.begin("http://192.168.0.45/capture");
       int httpCode = http.GET();
+      
+      //Check for the returning code
       if (httpCode > 0) { //Check for the returning code
           String payload = http.getString();
           Serial.println(httpCode);
@@ -72,41 +79,40 @@ void loop() {
       else {
         Serial.println("Error on HTTP request");
       }
-      http.end(); //Free the resources
-//      TODO: communicate current position to camera
-//      Serial.print("Packet sent : ");
-//      Serial.println(CURR_POS);
+      //Free the resources
+      http.end(); 
+      // TODO: communicate current position to camera
+
+      if(CURR_POS < 3){
+        digitalWrite(relayPin, HIGH);
+        CURR_POS++;
+        Serial.print("new pos ");
+        Serial.println(CURR_POS);
+      }
+      else{
+        Serial.println("Waiting and restarting");
+        CURR_POS = 0;
+        on_state = false;
+      }
       
-      position_packet_sent = true;
-    }
-    // If any position trigger have gone off, then move to that position.
-    if(digitalRead(32) == HIGH){   
-      digitalWrite(relayPin, HIGH); 
-      CURR_POS = 0;
-      position_packet_sent = false;
-      stepper.moveTo(positions[CURR_POS]);
-//      current_pos -= tuning_dist;
-//      stepper.moveTo(current_pos);
-    }
-    else if(digitalRead(33) == HIGH){  
-      digitalWrite(relayPin, HIGH); 
-      CURR_POS = 1;
-      position_packet_sent = false;
-      stepper.moveTo(positions[CURR_POS]);
-    }
-    else if(digitalRead(26) == HIGH){
-      digitalWrite(relayPin, HIGH); 
-      CURR_POS = 2;
-      position_packet_sent = false;
-      stepper.moveTo(positions[CURR_POS]);
-//      current_pos += tuning_dist;
-//      stepper.moveTo(current_pos);
+      // Move the stepper motor to the position
+      if(CURR_POS < 3){
+        Serial.println("Moving time");
+        stepper.moveTo(positions[CURR_POS]);
+      }
+//      stepper.moveTo(30000);
+//      on_state = false;
     }
   }
 
+  if(stepper.distanceToGo() != 0){
+    digitalWrite(relayPin, HIGH);
+  }
+  else{
+    digitalWrite(relayPin, LOW);    
+  }
+
+  if(digitalRead(26) == HIGH || digitalRead(33) == HIGH || digitalRead(32) == HIGH){
+    on_state = true;
+  }
 }
-
-
-
-
-            
