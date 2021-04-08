@@ -38,7 +38,7 @@ void setup() {
   pinMode(26, INPUT);
   pinMode(25, OUTPUT);
   digitalWrite(relayPin, LOW);
-
+  
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFiManager wm;
@@ -62,7 +62,7 @@ void loop() {
     if(!position_packet_sent){
       digitalWrite(relayPin, LOW);
       HTTPClient http;
-      http.begin("http://192.168.0.57/capture");
+      http.begin("http://192.168.0.45/capture");
       int httpCode = http.GET();
       if (httpCode > 0) { //Check for the returning code
           String payload = http.getString();
@@ -92,7 +92,6 @@ void loop() {
       digitalWrite(relayPin, HIGH); 
       CURR_POS = 1;
       position_packet_sent = false;
-//      stepper.moveTo(positions[CURR_POS]);
       stepper.moveTo(positions[CURR_POS]);
     }
     else if(digitalRead(26) == HIGH){
