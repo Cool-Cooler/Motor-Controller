@@ -4,12 +4,12 @@
 * Initialise internet connection.
 * Wait for starting signal (manual begin command, fridge door detected closing).
 * Initialise client, connected to [Web-Controlled-ESP-EYE]{https://github.com/Cool-Cooler/Web-Controlled-ESP-EYE}.
-  * When in position 1 - command ESP-EYE to take photo 1. Wait until action is complete. 
-  * Command Stepper Motors to move to position 2.
-  * When in position 2 - command ESP-EYE to take photo 2. Wait until action is complete. 
-  * Command Stepper Motors to move to position 3.
-  * When in position 3 - command ESP-EYE to take photo 3. Wait until action is complete. 
-  * Command Stepper Motors to return to home position.
+  1. When in position 1 - command ESP-EYE to take photo 1. Wait until action is complete. 
+  2. Command Stepper Motors to move to position 2.
+  3. When in position 2 - command ESP-EYE to take photo 2. Wait until action is complete. 
+  4. Command Stepper Motors to move to position 3.
+  5. When in position 3 - command ESP-EYE to take photo 3. Wait until action is complete. 
+  6. Command Stepper Motors to return to home position.
 * Disconnect from server.
 * Put motors into powered-off state until new starting signal is detected.
  
