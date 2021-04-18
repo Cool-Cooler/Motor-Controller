@@ -2,7 +2,7 @@
 
 ## Purpose
 * Initialise internet connection.
-* Wait for starting signal (manual begin command, fridge door detected closing).
+* Wait for starting signal (manual begin command/ fridge door detected closing).
 * Initialise client, connected to [Web-Controlled-ESP-EYE](https://github.com/Cool-Cooler/Web-Controlled-ESP-EYE).
   1. When in position 1 - command ESP-EYE to take photo 1. Wait until action is complete. 
   2. Command Stepper Motors to move to position 2.
